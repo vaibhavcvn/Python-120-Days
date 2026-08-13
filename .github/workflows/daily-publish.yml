@@ -1,0 +1,35 @@
+name: Daily Python Publishing Guide
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  daily-guide:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Find next Python file
+        shell: bash
+        run: |
+          TOTAL=$(find source -maxdepth 1 -type f -name "*.py" | wc -l)
+
+          if [ "$TOTAL" -eq 0 ]; then
+            echo "No Python files found."
+            exit 0
+          fi
+
+          NEXT=$(find source -maxdepth 1 -type f -name "*.py" | sort | head -n 1)
+
+          echo "======================================"
+          echo "Daily Python Publishing Guide"
+          echo "======================================"
+          echo "Total files remaining: $TOTAL"
+          echo "Next file: $(basename "$NEXT")"
+          echo "======================================"
+          echo "Work on this file and commit your"
+          echo "meaningful changes to the repository."
