@@ -1,4 +1,4 @@
-name: Daily Python Publishing Guide
+name: Daily Python Publisher
 
 on:
   schedule:
@@ -6,30 +6,35 @@ on:
   workflow_dispatch:
 
 jobs:
-  daily-guide:
+  publish:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Find next Python file
+      - name: Publish next 2 Python files
         shell: bash
         run: |
-          TOTAL=$(find source -maxdepth 1 -type f -name "*.py" | wc -l)
+          mkdir -p published
 
-          if [ "$TOTAL" -eq 0 ]; then
-            echo "No Python files found."
+          FILES=$(find source -maxdepth 1 -type f -name "*.py" | sort | head -n 2)
+
+          if [ -z "$FILES" ]; then
+            echo "No Python files remaining."
             exit 0
           fi
 
-          NEXT=$(find source -maxdepth 1 -type f -name "*.py" | sort | head -n 1)
+          echo "Files scheduled for publishing:"
 
-          echo "======================================"
-          echo "Daily Python Publishing Guide"
-          echo "======================================"
-          echo "Total files remaining: $TOTAL"
-          echo "Next file: $(basename "$NEXT")"
-          echo "======================================"
-          echo "Work on this file and commit your"
-          echo "meaningful changes to the repository."
+          while IFS= read -r FILE; do
+            BASENAME=$(basename "$FILE")
+
+            cp "$FILE" "published/$BASENAME"
+            rm "$FILE"
+
+            echo "Published: $BASENAME"
+          done <<< "$FILES"
+
+          echo "Remaining files:"
+          find source -maxdepth 1 -type f -name "*.py" | sort | wc -l
